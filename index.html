@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b67">
+  <meta name="description" content="Convert images and text to PDF in your browser and download the result.">
+  <title>Image & Text to PDF</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f3f6fb;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    header { padding: 2rem 1rem 1.5rem; color: white; text-align: center; background: #173b67; }
+    header h1 { margin: 0; font-size: clamp(1.7rem, 5vw, 2.5rem); }
+    header p { margin: .6rem 0 0; color: #dce8f6; }
+    main { width: min(940px, 100%); margin: 1.5rem auto; padding: 0 1rem 2rem; }
+    .notice { margin: 0 0 1rem; padding: .8rem 1rem; border: 1px solid #c9d9ed; border-radius: .7rem; background: #eaf2fc; color: #274364; font-size: .95rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .card { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid #dfe5ee; border-radius: 1rem; background: white; box-shadow: 0 5px 18px #21324a0b; }
+    .card h2 { margin: 0 0 .4rem; font-size: 1.25rem; }
+    .card p { margin: .3rem 0 1rem; color: #596579; line-height: 1.5; }
+    label { display: block; margin: .9rem 0 .4rem; font-weight: 650; }
+    input[type="file"], textarea, input[type="text"] { width: 100%; padding: .75rem; border: 1px solid #b9c3d1; border-radius: .55rem; background: white; font: inherit; }
+    input[type="file"] { padding: .55rem; }
+    textarea { min-height: 220px; resize: vertical; }
+    button { width: 100%; min-height: 46px; margin-top: 1rem; padding: .7rem 1rem; border: 0; border-radius: .6rem; color: white; background: #1769c2; font: inherit; font-weight: 700; cursor: pointer; }
+    button:hover { background: #1056a2; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #f2b544; outline-offset: 2px; }
+    button:disabled { cursor: wait; opacity: .65; }
+    .status { min-height: 1.5em; margin: .75rem 0 0 !important; color: #274364 !important; font-size: .92rem; }
+    footer { padding: 0 1rem 2rem; text-align: center; color: #596579; font-size: .9rem; }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } main { margin-top: 1rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Image &amp; Text to PDF</h1>
+    <p>Convert on your device and download your PDF.</p>
+  </header>
+  <main>
+    <p class="notice">Your files and text are processed in this browser; they are not uploaded to a server. An internet connection is needed to load the PDF library.</p>
+    <div class="grid">
+      <section class="card" aria-labelledby="image-title">
+        <h2 id="image-title">Images to PDF</h2>
+        <p>Select one or more images. Each image will be placed on its own PDF page.</p>
+        <label for="images">Choose images</label>
+        <input id="images" type="file" accept="image/*" multiple>
+        <button id="image-button" type="button">Convert images and download PDF</button>
+        <p id="image-status" class="status" role="status" aria-live="polite"></p>
+      </section>
+      <section class="card" aria-labelledby="text-title">
+        <h2 id="text-title">Text to PDF</h2>
+        <p>Enter or paste text below. Long text will continue onto additional pages.</p>
+        <label for="text">Your text</label>
+        <textarea id="text" placeholder="Type or paste your text here..."></textarea>
+        <label for="text-filename">PDF filename</label>
+        <input id="text-filename" type="text" value="text-document" maxlength="80">
+        <button id="text-button" type="button">Convert text and download PDF</button>
+        <p id="text-status" class="status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+  </main>
+  <footer>Works in modern mobile and desktop browsers.</footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    const imageInput = document.getElementById('images');
+    const imageButton = document.getElementById('image-button');
+    const imageStatus = document.getElementById('image-status');
+    const textInput = document.getElementById('text');
+    const textButton = document.getElementById('text-button');
+    const textStatus = document.getElementById('text-status');
+
+    function setBusy(button, status, message, busy) {
+      button.disabled = busy;
+      status.textContent = message;
+    }
+
+    function safeFilename(value) {
+      const cleaned = value.trim().replace(/\.pdf$/i, '').replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '');
+      return (cleaned || 'converted-file') + '.pdf';
+    }
+
+    imageButton.addEventListener('click', async () => {
+      const files = Array.from(imageInput.files || []);
+      if (!files.length) {
+        imageStatus.textContent = 'Choose at least one image first.';
+        return;
+      }
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        imageStatus.textContent = 'The PDF library could not load. Check your internet connection and reload the page.';
+        return;
+      }
+
+      setBusy(imageButton, imageStatus, 'Preparing your PDF…', true);
+      try {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+
+        for (let index = 0; index < files.length; index++) {
+          const file = files[index];
+          if (!file.type.startsWith('image/')) throw new Error(`${file.name} is not a supported image.`);
+          const bitmap = await createImageBitmap(file);
+          const scale = Math.min((pageWidth - margin * 2) / bitmap.width, (pageHeight - margin * 2) / bitmap.height);
+          const width = bitmap.width * scale;
+          const height = bitmap.height * scale;
+          const canvas = document.createElement('canvas');
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          const context = canvas.getContext('2d');
+          if (!context) throw new Error('Could not prepare an image for the PDF.');
+          context.fillStyle = '#ffffff';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(bitmap, 0, 0);
+          bitmap.close();
+          if (index > 0) pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', (pageWidth - width) / 2, (pageHeight - height) / 2, width, height);
+          canvas.width = 0;
+          canvas.height = 0;
+        }
+        pdf.save('images.pdf');
+        setBusy(imageButton, imageStatus, `Done. Downloaded a PDF with ${files.length} page${files.length === 1 ? '' : 's'}.`, false);
+      } catch (error) {
+        setBusy(imageButton, imageStatus, error.message || 'Could not convert the selected images.', false);
+      }
+    });
+
+    textButton.addEventListener('click', () => {
+      const value = textInput.value;
+      if (!value.trim()) {
+        textStatus.textContent = 'Enter some text first.';
+        return;
+      }
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        textStatus.textContent = 'The PDF library could not load. Check your internet connection and reload the page.';
+        return;
+      }
+
+      setBusy(textButton, textStatus, 'Creating your PDF…', true);
+      try {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+        const margin = 15;
+        const usableWidth = pdf.internal.pageSize.getWidth() - margin * 2;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const lineHeight = 7;
+        const lines = pdf.splitTextToSize(value, usableWidth);
+        let y = margin;
+        lines.forEach((line) => {
+          if (y + lineHeight > pageHeight - margin) {
+            pdf.addPage();
+            y = margin;
+          }
+          pdf.text(line, margin, y);
+          y += lineHeight;
+        });
+        pdf.save(safeFilename(document.getElementById('text-filename').value));
+        setBusy(textButton, textStatus, 'Done. Your PDF download has started.', false);
+      } catch (error) {
+        setBusy(textButton, textStatus, error.message || 'Could not convert the text.', false);
+      }
+    });
+  </script>
+</body>
+</html>
