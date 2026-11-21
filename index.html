@@ -25,7 +25,7 @@ input[type=file]{display:none}
 select{padding:12px;border:1px solid #dbe3ef;border-radius:11px;background:white;font:inherit;flex:1;min-width:150px}
 #status{margin-top:12px;color:var(--muted);font-size:13px;white-space:pre-wrap}
 .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-.feature{padding:13px;background:#f8fafc;border-radius:12px;border:1px solid #e8edf5;font-size:13px}
+.feature{padding:13px;background:#f8fafc;border-radius:12px;border:1px solid #e8edf5;font-size:13px}.feature button{margin-top:9px;padding:8px 10px;font-size:12px;border-radius:9px}
 .feature b{display:block;margin-bottom:5px}
 .note{font-size:12px;line-height:1.5;color:var(--muted)}
 footer{text-align:center;padding:20px;color:var(--muted);font-size:12px}
@@ -58,12 +58,12 @@ footer{text-align:center;padding:20px;color:var(--muted);font-size:12px}
 <section class="panel">
 <h2>Supported conversions (prototype)</h2>
 <div class="features">
-<div class="feature"><b>📝 TXT → PDF / Word</b>Text documents</div>
-<div class="feature"><b>🖼️ Image → PDF</b>JPG, PNG, WebP, BMP</div>
-<div class="feature"><b>📄 PDF → JPG / PNG</b>Page images</div>
-<div class="feature"><b>📑 HTML → PDF / Word</b>Web documents</div>
-<div class="feature"><b>📃 PDF → Text</b>Extract selectable text</div>
-<div class="feature"><b>📦 DOCX → TXT</b>Extract document text</div>
+<div class="feature"><b>📝 TXT → PDF / Word</b>Text documents<br><button type="button" class="example" data-target="pdf">TXT → PDF</button> <button type="button" class="example" data-target="docx">TXT → Word</button></div>
+<div class="feature"><b>🖼️ Image → PDF</b>JPG, PNG, WebP, BMP<br><button type="button" class="example" data-target="pdf">Image → PDF</button></div>
+<div class="feature"><b>📄 PDF → JPG / PNG</b>Page images<br><button type="button" class="example" data-target="jpg">PDF → JPG</button> <button type="button" class="example" data-target="png">PDF → PNG</button></div>
+<div class="feature"><b>📑 HTML → PDF / Word</b>Web documents<br><button type="button" class="example" data-target="pdf">HTML → PDF</button> <button type="button" class="example" data-target="docx">HTML → Word</button></div>
+<div class="feature"><b>📃 PDF → Text</b>Extract selectable text<br><button type="button" class="example" data-target="txt">PDF → Text</button></div>
+<div class="feature"><b>📦 DOCX → TXT</b>Extract document text<br><button type="button" class="example" data-target="txt">Word → Text</button></div>
 </div>
 <p class="note">This browser prototype supports the listed conversions. Legacy DOC, Excel, PowerPoint, scanned PDF OCR, and advanced PDF-to-Word layout conversion require additional processing or specialized libraries and are not included yet. Files are processed locally in your browser where possible. Internet is required to load conversion engines on first use.</p>
 </section>
@@ -97,8 +97,19 @@ footer{text-align:center;padding:20px;color:var(--muted);font-size:12px}
 <script>
 const input=document.getElementById('files'), list=document.getElementById('filelist'), convert=document.getElementById('convert'), status=document.getElementById('status'), fmt=document.getElementById('format');
 let files=[];
+let autoConvertFromExample=false;
 if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-input.addEventListener('change',()=>{files=[...input.files];renderFiles()});
+input.addEventListener('change',()=>{files=[...input.files];renderFiles();if(autoConvertFromExample&&files.length){autoConvertFromExample=false;convert.click()}});
+document.querySelectorAll('.example').forEach(button=>{
+  button.addEventListener('click',()=>{
+    fmt.value=button.dataset.target;
+    autoConvertFromExample=true;
+    status.textContent='Selected: '+fmt.options[fmt.selectedIndex].text+'. Choose a file to start converting automatically.';
+    if(files.length){autoConvertFromExample=false;convert.click();}
+    else document.getElementById('drop').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+});
+
 function renderFiles(){list.innerHTML=files.map(f=>`<div class="file"><span>📄 ${escapeHtml(f.name)} <small>(${(f.size/1024).toFixed(1)} KB)</small></span></div>`).join('');convert.disabled=!files.length;status.textContent=''}
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 document.getElementById('drop').addEventListener('dragover',e=>{e.preventDefault();e.currentTarget.style.background='#eaf2ff'});
