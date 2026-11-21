@@ -1,174 +1,163 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#173b67">
-  <meta name="description" content="Convert images and text to PDF in your browser and download the result.">
-  <title>Image & Text to PDF</title>
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #172033;
-      background: #f3f6fb;
-      font-synthesis: none;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-width: 320px; }
-    header { padding: 2rem 1rem 1.5rem; color: white; text-align: center; background: #173b67; }
-    header h1 { margin: 0; font-size: clamp(1.7rem, 5vw, 2.5rem); }
-    header p { margin: .6rem 0 0; color: #dce8f6; }
-    main { width: min(940px, 100%); margin: 1.5rem auto; padding: 0 1rem 2rem; }
-    .notice { margin: 0 0 1rem; padding: .8rem 1rem; border: 1px solid #c9d9ed; border-radius: .7rem; background: #eaf2fc; color: #274364; font-size: .95rem; }
-    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-    .card { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid #dfe5ee; border-radius: 1rem; background: white; box-shadow: 0 5px 18px #21324a0b; }
-    .card h2 { margin: 0 0 .4rem; font-size: 1.25rem; }
-    .card p { margin: .3rem 0 1rem; color: #596579; line-height: 1.5; }
-    label { display: block; margin: .9rem 0 .4rem; font-weight: 650; }
-    input[type="file"], textarea, input[type="text"] { width: 100%; padding: .75rem; border: 1px solid #b9c3d1; border-radius: .55rem; background: white; font: inherit; }
-    input[type="file"] { padding: .55rem; }
-    textarea { min-height: 220px; resize: vertical; }
-    button { width: 100%; min-height: 46px; margin-top: 1rem; padding: .7rem 1rem; border: 0; border-radius: .6rem; color: white; background: #1769c2; font: inherit; font-weight: 700; cursor: pointer; }
-    button:hover { background: #1056a2; }
-    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #f2b544; outline-offset: 2px; }
-    button:disabled { cursor: wait; opacity: .65; }
-    .status { min-height: 1.5em; margin: .75rem 0 0 !important; color: #274364 !important; font-size: .92rem; }
-    footer { padding: 0 1rem 2rem; text-align: center; color: #596579; font-size: .9rem; }
-    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } main { margin-top: 1rem; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2563eb">
+<meta name="description" content="Convert documents and images with AllDoc Converter.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>AllDoc Converter</title>
+<style>
+:root{--blue:#2563eb;--bg:#f4f7fb;--ink:#14213d;--muted:#64748b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink)}
+header{background:linear-gradient(125deg,#15264c,#2563eb);color:white;padding:22px 18px 26px}
+.wrap{max-width:900px;margin:auto}header .brand{font-weight:800;font-size:22px;letter-spacing:-.5px}header p{margin:8px 0 0;color:#dbeafe}
+main{max-width:900px;margin:20px auto;padding:0 14px}
+.panel{background:white;border:1px solid #e3e9f3;border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 5px 20px #17255408}
+h2{font-size:18px;margin:0 0 14px} .drop{border:2px dashed #93b4ed;background:#f8fbff;border-radius:14px;padding:28px 14px;text-align:center}
+.drop strong{display:block;font-size:16px;margin-bottom:6px}.drop p{color:var(--muted);font-size:13px;margin:0 0 14px}
+button,.btn{border:0;border-radius:11px;background:var(--blue);color:white;padding:12px 15px;font-weight:700;cursor:pointer;font-size:14px}
+button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#e8efff;color:#1d4ed8}.danger{background:#fee2e2;color:#991b1b}
+input[type=file]{display:none}
+.filelist{margin-top:12px;display:grid;gap:9px}.file{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#f8fafc;border:1px solid #e5eaf2;padding:10px 12px;border-radius:12px;font-size:13px;overflow-wrap:anywhere}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select{padding:12px;border:1px solid #dbe3ef;border-radius:11px;background:white;font:inherit;flex:1;min-width:150px}
+#status{margin-top:12px;color:var(--muted);font-size:13px;white-space:pre-wrap}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.feature{padding:13px;background:#f8fafc;border-radius:12px;border:1px solid #e8edf5;font-size:13px}
+.feature b{display:block;margin-bottom:5px}
+.note{font-size:12px;line-height:1.5;color:var(--muted)}
+footer{text-align:center;padding:20px;color:var(--muted);font-size:12px}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Image &amp; Text to PDF</h1>
-    <p>Convert on your device and download your PDF.</p>
-  </header>
-  <main>
-    <p class="notice">Your files and text are processed in this browser; they are not uploaded to a server. An internet connection is needed to load the PDF library.</p>
-    <div class="grid">
-      <section class="card" aria-labelledby="image-title">
-        <h2 id="image-title">Images to PDF</h2>
-        <p>Select one or more images. Each image will be placed on its own PDF page.</p>
-        <label for="images">Choose images</label>
-        <input id="images" type="file" accept="image/*" multiple>
-        <button id="image-button" type="button">Convert images and download PDF</button>
-        <p id="image-status" class="status" role="status" aria-live="polite"></p>
-      </section>
-      <section class="card" aria-labelledby="text-title">
-        <h2 id="text-title">Text to PDF</h2>
-        <p>Enter or paste text below. Long text will continue onto additional pages.</p>
-        <label for="text">Your text</label>
-        <textarea id="text" placeholder="Type or paste your text here..."></textarea>
-        <label for="text-filename">PDF filename</label>
-        <input id="text-filename" type="text" value="text-document" maxlength="80">
-        <button id="text-button" type="button">Convert text and download PDF</button>
-        <p id="text-status" class="status" role="status" aria-live="polite"></p>
-      </section>
-    </div>
-  </main>
-  <footer>Works in modern mobile and desktop browsers.</footer>
+<header><div class="wrap"><div class="brand">📄 AllDoc Converter</div><p>Convert files simply — right in your browser.</p></div></header>
+<main>
+<section class="panel">
+<h2>1. Choose your file</h2>
+<div class="drop" id="drop">
+<strong>Drop a file here</strong><p>or select from your device</p>
+<label class="btn" for="files">Choose file</label><input id="files" type="file" multiple accept=".pdf,.docx,.doc,.txt,.html,.htm,.jpg,.jpeg,.png,.webp,.bmp">
+</div><div id="filelist" class="filelist"></div>
+</section>
+<section class="panel">
+<h2>2. Select conversion</h2>
+<div class="row">
+<select id="format">
+<option value="pdf">Convert to PDF</option>
+<option value="docx">Convert to Word (.docx)</option>
+<option value="txt">Convert to Text (.txt)</option>
+<option value="jpg">Convert to JPG image</option>
+<option value="png">Convert to PNG image</option>
+</select>
+<button id="convert" disabled>Convert files</button>
+</div>
+<div id="status"></div>
+</section>
+<section class="panel">
+<h2>Supported conversions (prototype)</h2>
+<div class="features">
+<div class="feature"><b>📝 TXT → PDF / Word</b>Text documents</div>
+<div class="feature"><b>🖼️ Image → PDF</b>JPG, PNG, WebP, BMP</div>
+<div class="feature"><b>📄 PDF → JPG / PNG</b>Page images</div>
+<div class="feature"><b>📑 HTML → PDF / Word</b>Web documents</div>
+<div class="feature"><b>📃 PDF → Text</b>Extract selectable text</div>
+<div class="feature"><b>📦 DOCX → TXT</b>Extract document text</div>
+</div>
+<p class="note">This browser prototype supports the listed conversions. Legacy DOC, Excel, PowerPoint, scanned PDF OCR, and advanced PDF-to-Word layout conversion require additional processing or specialized libraries and are not included yet. Files are processed locally in your browser where possible. Internet is required to load conversion engines on first use.</p>
+</section>
+<footer>AllDoc Converter • Prototype</footer>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js"></script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script>
-    const imageInput = document.getElementById('images');
-    const imageButton = document.getElementById('image-button');
-    const imageStatus = document.getElementById('image-status');
-    const textInput = document.getElementById('text');
-    const textButton = document.getElementById('text-button');
-    const textStatus = document.getElementById('text-status');
+<script>
+(function(){
+  const checks = [
+    ['File selection', !!window.File && !!window.FileReader && !!window.Blob],
+    ['Downloads', !!document.createElement('a').download],
+    ['Canvas', !!document.createElement('canvas').getContext],
+  ];
+  const unsupported = checks.filter(x=>!x[1]).map(x=>x[0]);
+  if(unsupported.length){
+    const msg=document.createElement('div');
+    msg.style.cssText='margin:12px;padding:12px;background:#fff1f2;color:#9f1239;border-radius:12px;font-size:13px';
+    msg.textContent='Your browser is missing support for: '+unsupported.join(', ')+'. Try updating your browser.';
+    document.body.prepend(msg);
+  }
+  if('serviceWorker' in navigator && location.protocol!=='file:'){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  }
+})();
+</script>
 
-    function setBusy(button, status, message, busy) {
-      button.disabled = busy;
-      status.textContent = message;
-    }
+<script>
+const input=document.getElementById('files'), list=document.getElementById('filelist'), convert=document.getElementById('convert'), status=document.getElementById('status'), fmt=document.getElementById('format');
+let files=[];
+if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+input.addEventListener('change',()=>{files=[...input.files];renderFiles()});
+function renderFiles(){list.innerHTML=files.map(f=>`<div class="file"><span>📄 ${escapeHtml(f.name)} <small>(${(f.size/1024).toFixed(1)} KB)</small></span></div>`).join('');convert.disabled=!files.length;status.textContent=''}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+document.getElementById('drop').addEventListener('dragover',e=>{e.preventDefault();e.currentTarget.style.background='#eaf2ff'});
+document.getElementById('drop').addEventListener('dragleave',e=>e.currentTarget.style.background='#f8fbff');
+document.getElementById('drop').addEventListener('drop',e=>{e.preventDefault();e.currentTarget.style.background='#f8fbff';files=[...e.dataTransfer.files];renderFiles()});
+function download(blob,name){let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function base(n){return n.replace(/\.[^.]+$/,'')}
+async function getText(f){
+ let ext=f.name.split('.').pop().toLowerCase();
+ if(ext==='txt')return await f.text();
+ if(ext==='html'||ext==='htm'){let d=new DOMParser().parseFromString(await f.text(),'text/html');return d.body.innerText}
+ if(ext==='docx'){let r=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});return r.value}
+ if(ext==='pdf'){let pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise, out='';for(let i=1;i<=pdf.numPages;i++){let p=await pdf.getPage(i),c=await p.getTextContent();out+=c.items.map(x=>x.str).join(' ')+'\n\n'}return out}
+ throw new Error('Text extraction not supported for '+ext);
+}
+async function textPdf(text){
+ const {PDFDocument,StandardFonts}=PDFLib;let pdf=await PDFDocument.create(),font=await pdf.embedFont(StandardFonts.Helvetica),page=pdf.addPage(),size=12,margin=50,lh=17,y=page.getHeight()-margin;
+ let words=text.split(/\s+/),line='';
+ for(const word of words){let test=line?line+' '+word:word;if(font.widthOfTextAtSize(test,size)>page.getWidth()-2*margin){page.drawText(line,{x:margin,y,size,font});y-=lh;line=word;if(y<margin){page=pdf.addPage();y=page.getHeight()-margin}}else line=test}
+ if(line)page.drawText(line,{x:margin,y,size,font});
+ return new Blob([await pdf.save()],{type:'application/pdf'})
+}
+async function textDocx(text){
+ const {Document,Packer,Paragraph}=docx;
+ let doc=new Document({sections:[{children:text.split(/\n/).map(t=>new Paragraph(t))}]});
+ return await Packer.toBlob(doc)
+}
+async function imagePdf(f){
+ let {PDFDocument}=PDFLib,pdf=await PDFDocument.create(),bytes=await f.arrayBuffer(),img;
+ let ext=f.name.split('.').pop().toLowerCase();
+ if(ext==='jpg'||ext==='jpeg')img=await pdf.embedJpg(bytes);else img=await pdf.embedPng(bytes);
+ let p=pdf.addPage([img.width,img.height]);p.drawImage(img,{x:0,y:0,width:img.width,height:img.height});return new Blob([await pdf.save()],{type:'application/pdf'})
+}
+async function pdfImages(f,kind){
+ let pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+ for(let i=1;i<=pdf.numPages;i++){let page=await pdf.getPage(i),v=page.getViewport({scale:1.6}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;await page.render({canvasContext:c.getContext('2d'),viewport:v}).promise;let blob=await new Promise(r=>c.toBlob(r,'image/'+kind,0.92));download(blob,`${base(f.name)}-page-${i}.${kind}`)}
+}
+convert.addEventListener('click',async()=>{
+ if(!window.PDFLib && fmt.value==='pdf'){status.textContent='PDF engine did not load. Check internet connection and reload.';return}
+ if(fmt.value==='docx' && !window.docx){status.textContent='Word engine did not load. Check internet connection and reload.';return}
+ if((fmt.value==='jpg'||fmt.value==='png') && files.some(f=>f.name.toLowerCase().endsWith('.pdf')) && !window.pdfjsLib){status.textContent='PDF image engine did not load. Check internet connection and reload.';return}
 
-    function safeFilename(value) {
-      const cleaned = value.trim().replace(/\.pdf$/i, '').replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '');
-      return (cleaned || 'converted-file') + '.pdf';
-    }
-
-    imageButton.addEventListener('click', async () => {
-      const files = Array.from(imageInput.files || []);
-      if (!files.length) {
-        imageStatus.textContent = 'Choose at least one image first.';
-        return;
-      }
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        imageStatus.textContent = 'The PDF library could not load. Check your internet connection and reload the page.';
-        return;
-      }
-
-      setBusy(imageButton, imageStatus, 'Preparing your PDF…', true);
-      try {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-
-        for (let index = 0; index < files.length; index++) {
-          const file = files[index];
-          if (!file.type.startsWith('image/')) throw new Error(`${file.name} is not a supported image.`);
-          const bitmap = await createImageBitmap(file);
-          const scale = Math.min((pageWidth - margin * 2) / bitmap.width, (pageHeight - margin * 2) / bitmap.height);
-          const width = bitmap.width * scale;
-          const height = bitmap.height * scale;
-          const canvas = document.createElement('canvas');
-          canvas.width = bitmap.width;
-          canvas.height = bitmap.height;
-          const context = canvas.getContext('2d');
-          if (!context) throw new Error('Could not prepare an image for the PDF.');
-          context.fillStyle = '#ffffff';
-          context.fillRect(0, 0, canvas.width, canvas.height);
-          context.drawImage(bitmap, 0, 0);
-          bitmap.close();
-          if (index > 0) pdf.addPage();
-          pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', (pageWidth - width) / 2, (pageHeight - height) / 2, width, height);
-          canvas.width = 0;
-          canvas.height = 0;
-        }
-        pdf.save('images.pdf');
-        setBusy(imageButton, imageStatus, `Done. Downloaded a PDF with ${files.length} page${files.length === 1 ? '' : 's'}.`, false);
-      } catch (error) {
-        setBusy(imageButton, imageStatus, error.message || 'Could not convert the selected images.', false);
-      }
-    });
-
-    textButton.addEventListener('click', () => {
-      const value = textInput.value;
-      if (!value.trim()) {
-        textStatus.textContent = 'Enter some text first.';
-        return;
-      }
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        textStatus.textContent = 'The PDF library could not load. Check your internet connection and reload the page.';
-        return;
-      }
-
-      setBusy(textButton, textStatus, 'Creating your PDF…', true);
-      try {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
-        const margin = 15;
-        const usableWidth = pdf.internal.pageSize.getWidth() - margin * 2;
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const lineHeight = 7;
-        const lines = pdf.splitTextToSize(value, usableWidth);
-        let y = margin;
-        lines.forEach((line) => {
-          if (y + lineHeight > pageHeight - margin) {
-            pdf.addPage();
-            y = margin;
-          }
-          pdf.text(line, margin, y);
-          y += lineHeight;
-        });
-        pdf.save(safeFilename(document.getElementById('text-filename').value));
-        setBusy(textButton, textStatus, 'Done. Your PDF download has started.', false);
-      } catch (error) {
-        setBusy(textButton, textStatus, error.message || 'Could not convert the text.', false);
-      }
-    });
-  </script>
+ convert.disabled=true;status.textContent='Converting…';
+ try{
+ for(const f of files){let ext=f.name.split('.').pop().toLowerCase(),target=fmt.value,n=base(f.name);
+ if(target==='pdf'){
+  let blob;if(['jpg','jpeg','png'].includes(ext))blob=await imagePdf(f);else blob=await textPdf(await getText(f));download(blob,n+'.pdf');
+ }else if(target==='txt'){download(new Blob([await getText(f)],{type:'text/plain'}),n+'.txt')}
+ else if(target==='docx'){download(await textDocx(await getText(f)),n+'.docx')}
+ else if(target==='jpg'||target==='png'){
+  if(ext==='pdf'){await pdfImages(f,target);continue}
+  if(['jpg','jpeg','png','webp','bmp'].includes(ext)){let img=new Image();img.src=URL.createObjectURL(f);await img.decode();let c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);let b=await new Promise(r=>c.toBlob(r,'image/'+target,0.92));download(b,n+'.'+target)}
+  else throw new Error('Image conversion for this file type is not supported');
+ }
+ }
+ status.textContent='Done! Your converted file(s) should be downloaded.';
+ }catch(e){status.textContent='Conversion failed: '+e.message}
+ finally{convert.disabled=!files.length}
+});
+</script>
 </body>
 </html>
